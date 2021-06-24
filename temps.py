@@ -142,16 +142,19 @@ def run(action, entries:[Entry]=None, overwrite:bool=False, dry_run:bool=False, 
         print = lambda *a, **k: None
     else:
         print = __builtins__.print
-    assert max(date for date, _, _ in entries) == entries[-1].hr_date
-    last_entry_is_today = entries[-1].hr_date == Entry.now_arrived().hr_date
-    diff = Entry.now_arrived().date_base - entries[-1].date_base
-    if last_entry_is_today:
-        print('Last entry is today.')
-    else:
-        print(f'Last entry is {diff} ago.')
+    if entries:
+        assert max(date for date, _, _ in entries) == entries[-1].hr_date
+        last_entry_is_today = entries[-1].hr_date == Entry.now_arrived().hr_date
+        if last_entry_is_today:
+            print('Last entry is today.')
+        else:
+            diff = Entry.now_arrived().date_base - entries[-1].date_base
+            print(f'Last entry is {diff} ago.')
+    else:  # there is no entry yet
+            print(f'No data found. File was empty.')
 
     if action == 'arrive':
-        if entries[-1].is_unfinished():
+        if entries and entries[-1].is_unfinished():
             if args.overwrite:
                 entries[-1].set_start_now()
                 print('Changed last arrival at now.')
@@ -162,7 +165,7 @@ def run(action, entries:[Entry]=None, overwrite:bool=False, dry_run:bool=False, 
             print('Added a new entry, arrival now.')
 
     elif action == 'quit':
-        if entries[-1].is_unfinished():
+        if entries and entries[-1].is_unfinished():
             entries[-1].set_finish_now()
             print('Changed last entry, quitting now.')
         else:
